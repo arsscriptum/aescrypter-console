@@ -35,6 +35,8 @@
     <OutDir>$(ProjectOutputDirectory)\</OutDir>
     <IntDir>$(ProjectObjectDirectory)\</IntDir>
   </PropertyGroup>
+
+  
   <PropertyGroup Label="WinsockConfig" Condition="'$(UsingWinsock)'=='1'">
     <WinsockLib>wsock32.lib</WinsockLib>
   </PropertyGroup>

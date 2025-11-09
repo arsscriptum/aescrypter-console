@@ -1,4 +1,6 @@
-# AES Crypt for Windows (console application)
+<center>
+<img src="img/title.png" alt="title" />
+</center>
 
 AES Crypt is file encryption software available on several operating systems that uses the industry standard Advanced Encryption Standard (AES) to easily and securely encrypt files.
 
@@ -11,11 +13,27 @@ AES Crypt is the perfect tool for anyone who carries sensitive information with 
 ## Usage
 
 ```bash
- # TO ENCRYPTE
- > AesCrypter.exe -e 
 
- # TO DECRYPT
- > AesCrypter.exe -d
+AesCrypter.exe v1.17 - Encryption/Decryption tool using AES.
+Copyright(C) 1999 - 2023  Guillaume Plante
+arsscriptum - arsscriptum.github.io
+
+[error] Error: You must specify exactly one operation (--encrypt, --decrypt, or --analyse)
+Usage: aescrypter.exe {--encrypt|--decrypt|--analyse} file [options]
+
+Operations:
+  -d, --decrypt              : decrypt a file
+  -e, --encrypt              : encrypt a file
+  -a, --analyse              : analyse a file
+
+Options:
+  -p, --password <string>    : use clear password string
+  -c, --cert <path>          : use certificate
+  -o, --output <path>        : output file
+  -k, --key-file <path>      : encrypt/decrypt using a key stored in a file
+  -f, --force                : overwrite output file if exists
+  -g, --generate <path>      : only with 'encrypt' option: generate a key and store in a file
+  -h, --help                 : show this help message
 ```
 
 ## Examples
