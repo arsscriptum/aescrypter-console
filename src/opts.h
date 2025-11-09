@@ -1,0 +1,27 @@
+
+//==============================================================================
+//
+//  AES Crypt for Windows (console application)
+//  Copyright (C) 2007, 2008, 2009, 2010, 2013-2015
+//
+//  Contributors:
+//      Glenn Washburn <crass@berlios.de>
+//      Paul E. Jones <paulej@packetizer.com>
+//      Mauro Gilardi <galvao.m@gmail.com>
+//      Guilaume Plante 2020 <guillaumeplante.qc@gmail.com>
+//
+//============================================================================
+//  Copyright (C) Guilaume Plante 2020 <guillaumeplante.qc@gmail.com>
+//==============================================================================
+#ifndef __AESCRYPT_OPTS_H__
+#define __AESCRYPT_OPTS_H__
+
+/*
+ *  Define the function prototype only.
+ */
+int getopt( int             argc,
+            wchar_t * const *argv,
+            const wchar_t   *option_string);
+
+
+#endif //__AESCRYPT_OPTS_H__
