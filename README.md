@@ -53,6 +53,8 @@ Options:
 1. Glenn Washburn <crass@berlios.de>
 1. Paul E. Jones <paulej@packetizer.com>
 1. Mauro Gilardi <galvao.m@gmail.com>
-1. Guilaume Plante 2020 <guillaumeplante.qc@gmail.com>
+1. Guilaume Plante 2020 <gp@arsscriptum>
 
+## Linux Port
 
+1. Guilaume Plante 2025 <gp@arsscriptum>
