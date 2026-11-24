@@ -16,27 +16,33 @@
 //==============================================================================
 
 
-#include <windows.h>
-#include <Wincrypt.h>
-#include <io.h>
+#ifdef WIN64
+#  include <windows.h>
+#  include <Wincrypt.h>
+#  include <io.h>
+#  include <fcntl.h>
+#endif
 #include <stdio.h>
 #include <string.h>
-#include <fcntl.h>
 #include <wchar.h>
+#include "platform_compat.h"
 #include "opts.h"
 #include "log.h"
 #include "aescrypt.h"
 #include "password.h"
 #include "version.h"
 #include <stdlib.h>
+#include <vector>
 #include "aescrypt_defs.h"
+#ifdef WIN64
 /*
- *  Define externals
+ *  Externals from opts.cpp (custom getopt; not used on Linux)
  */
 extern wchar_t* optarg;
 extern int     optopt;
 extern int     optind;
 extern int     opterr;
+#endif
 
 #define MAX_FILENAME_LEN  1024
 extern bool gLogsEnabled;
@@ -268,8 +274,33 @@ void dump_cmd_options(const aescrypter_options* options) {
 
 }
 
-// Main function
+// Common application logic (called by platform entry points below)
+static int app_main(int argc, wchar_t* argv[]);
+
+#ifdef LINUX
+// Linux entry point: convert narrow argv to wide, then call app_main
+int main(int argc, char* argv[]) {
+    std::vector<std::wstring> wargs;
+    wargs.reserve(argc);
+    for (int i = 0; i < argc; i++) {
+        size_t len = strlen(argv[i]) + 1;
+        std::wstring ws(len, L'\0');
+        mbstowcs(ws.data(), argv[i], len);
+        ws.resize(wcslen(ws.c_str()));
+        wargs.push_back(std::move(ws));
+    }
+    std::vector<wchar_t*> wargv;
+    wargv.reserve(argc);
+    for (auto& ws : wargs) wargv.push_back(ws.data());
+    return app_main(argc, wargv.data());
+}
+#else
 int wmain(int argc, wchar_t* argv[]) {
+    return app_main(argc, argv);
+}
+#endif
+
+static int app_main(int argc, wchar_t* argv[]) {
     aescrypter_options options;
     int rc = 0, passlen = 0;
     FILE* infp = NULL;
@@ -375,17 +406,15 @@ int wmain(int argc, wchar_t* argv[]) {
         if (passlen < 0)
         {
             cleanup(output_file);
-            // For security reasons, erase the password
-            wmemset(pass, 0, passlen);
+            wmemset(pass, 0, MAX_PASSWD_LEN + 1);
             return -1;
         }
     }
     else {
         wcscpy(pass, options.password);
         passlen = (int)wcslen(options.password);
-
+        encrypt_mode = encryptingmode_t::PASSWORD;
         COUTCMD("Using password: %ls\n", options.password);
-
     }
 
     if ((infp = _wfopen(options.input_file, L"rb")) == NULL)
@@ -506,7 +535,11 @@ int wmain(int argc, wchar_t* argv[]) {
 
 // Function to check if the input file exists
 bool file_exists(const std::wstring& filename) {
+#ifdef LINUX
+    std::ifstream file(wstring_to_string(filename));
+#else
     std::ifstream file(filename);
+#endif
     return file.good();
 }
 

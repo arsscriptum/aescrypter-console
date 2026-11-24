@@ -21,13 +21,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include "platform_compat.h"
 
 #define MIN_PASSWD_LEN  6
 #define MAX_PASSWD_LEN  64
 #define MAX_FILENAME_LEN  1024
 
-#define APP_ExECUTABLE L"AesCrypter.exe"
+#ifdef WIN64
+#  define APP_ExECUTABLE L"AesCrypter.exe"
+#else
+#  define APP_ExECUTABLE L"aescrypter"
+#endif
 #define APP_NAME "AesCrypter"
 
 typedef enum {

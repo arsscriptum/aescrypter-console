@@ -13,7 +13,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <ctype.h>
-#include <wtypes.h>
+#ifdef WIN64
+#  include <wtypes.h>
+#endif
 #include "terminal_formatting.h"
 #include "console_colors_define.h"
 #include <iomanip>  // For std::setw
@@ -190,10 +192,12 @@ void __cdecl SystemDebugOutput(const wchar_t *channel, const char *format, ...)
 	*p++ = '\n';
 	*p = '\0';
 
+#ifdef WIN64
 	OutputDebugStringA(buf);
-#ifdef KERNEL_DEBUG
+#  ifdef KERNEL_DEBUG
 	DbgPrint(buf);
-#endif // KERNEL_DEBUG
+#  endif // KERNEL_DEBUG
+#endif // WIN64
 
 #endif // FINAL
 }

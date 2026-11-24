@@ -16,17 +16,29 @@
 
 
 
-#define _CRT_SECURE_NO_WARNINGS 1
-
-#include <windows.h>
-#include <Wincrypt.h>
-#include <io.h>
+#ifdef WIN64
+#  define _CRT_SECURE_NO_WARNINGS 1
+#  include <windows.h>
+#  include <Wincrypt.h>
+#  include <io.h>
+#  include <fcntl.h>
+#endif
 #include <stdio.h>
 #include <string.h>
-#include <fcntl.h>
 #include <wchar.h>
 #include "opts.h"
 #include "aescrypt.h"
+
+#ifdef LINUX
+// Use /dev/urandom for cryptographically secure random bytes on Linux
+static bool platform_rand_bytes(unsigned char* buf, size_t len) {
+    FILE* f = fopen("/dev/urandom", "rb");
+    if (!f) return false;
+    bool ok = (fread(buf, 1, len, f) == len);
+    fclose(f);
+    return ok;
+}
+#endif
 #include "password.h"
 #include "log.h"
 #include "version.h"
@@ -50,12 +62,15 @@ int encrypt_stream(FILE *infp, FILE *outfp, wchar_t* passwd, int passlen)
     unsigned char               buffer[32];
     unsigned char               ipad[64], opad[64];
     unsigned char               tag_buffer[256];
+#ifdef WIN64
     HCRYPTPROV                  hProv;
     DWORD                       result_code;
+#endif
     COUTCMD("[encrypt_stream] - encrypt file %ls, len %d\n  [encrypt_stream] Prepare for random number generation", passwd, passlen);
     COUTCMD("[encrypt_stream] Prepare for random number generation\n");
+#ifdef WIN64
     // Prepare for random number generation
-     if (!CryptAcquireContext(   &hProv,
+    if (!CryptAcquireContext(   &hProv,
                                 NULL,
                                 NULL,
                                 PROV_RSA_FULL,
@@ -85,6 +100,7 @@ int encrypt_stream(FILE *infp, FILE *outfp, wchar_t* passwd, int passlen)
             return -1;
         }
     }
+#endif // WIN64
 
     // Create the 16-bit IV and 32-bit encryption key
     // used for encrypting the plaintext file.  We do
@@ -101,13 +117,19 @@ int encrypt_stream(FILE *infp, FILE *outfp, wchar_t* passwd, int passlen)
         sha256_starts(&sha_ctx);
         for(j=0; j<256; j++)
         {
-            if (!CryptGenRandom(hProv,
-                                32,
-                                (BYTE *) buffer))
+#ifdef WIN64
+            if (!CryptGenRandom(hProv, 32, (BYTE *) buffer))
             {
                 COUTERR("Windows is unable to generate random digits");
                 return -1;
             }
+#else
+            if (!platform_rand_bytes(buffer, 32))
+            {
+                COUTERR("Unable to generate random digits");
+                return -1;
+            }
+#endif
             sha256_update(&sha_ctx, buffer, 32);
         }
         sha256_finish(&sha_ctx, digest);
@@ -124,7 +146,9 @@ int encrypt_stream(FILE *infp, FILE *outfp, wchar_t* passwd, int passlen)
     if (fwrite(buffer, 1, 5, outfp) != 5)
     {
         COUTERR("Error: Could not write out header data\n");
+#ifdef WIN64
         CryptReleaseContext(hProv, 0);
+#endif
         return  -1;
     }
 
@@ -143,7 +167,9 @@ int encrypt_stream(FILE *infp, FILE *outfp, wchar_t* passwd, int passlen)
         if (fwrite(buffer, 1, 2, outfp) != 2)
         {
             COUTERR("Error: Could not write tag to AES file (1)\n");
+#ifdef WIN64
             CryptReleaseContext(hProv, 0);
+#endif
             return  -1;
         }
 
@@ -152,7 +178,9 @@ int encrypt_stream(FILE *infp, FILE *outfp, wchar_t* passwd, int passlen)
         if (fwrite(tag_buffer, 1, 11, outfp) != 11)
         {
             COUTERR("Error: Could not write tag to AES file (2)\n");
+#ifdef WIN64
             CryptReleaseContext(hProv, 0);
+#endif
             return  -1;
         }
 
@@ -161,7 +189,9 @@ int encrypt_stream(FILE *infp, FILE *outfp, wchar_t* passwd, int passlen)
         if (fwrite(tag_buffer, 1, j, outfp) != j)
         {
             COUTERR("Error: Could not write tag to AES file (3)\n");
+#ifdef WIN64
             CryptReleaseContext(hProv, 0);
+#endif
             return  -1;
         }
     }
@@ -172,14 +202,18 @@ int encrypt_stream(FILE *infp, FILE *outfp, wchar_t* passwd, int passlen)
     if (fwrite(buffer, 1, 2, outfp) != 2)
     {
         COUTERR("Error: Could not write tag to AES file (4)\n");
+#ifdef WIN64
         CryptReleaseContext(hProv, 0);
+#endif
         return  -1;
     }
     memset(tag_buffer, 0, 128);
     if (fwrite(tag_buffer, 1, 128, outfp) != 128)
     {
         COUTERR("Error: Could not write tag to AES file (5)\n");
+#ifdef WIN64
         CryptReleaseContext(hProv, 0);
+#endif
         return  -1;
     }
 
@@ -189,7 +223,9 @@ int encrypt_stream(FILE *infp, FILE *outfp, wchar_t* passwd, int passlen)
     if (fwrite(buffer, 1, 2, outfp) != 2)
     {
         COUTERR("Error: Could not write tag to AES file (6)\n");
+#ifdef WIN64
         CryptReleaseContext(hProv, 0);
+#endif
         return  -1;
     }
     COUTCMD("[encrypt_stream] Create a random IV\n");
@@ -198,14 +234,20 @@ int encrypt_stream(FILE *infp, FILE *outfp, wchar_t* passwd, int passlen)
 
     for (i=0; i<256; i++)
     {
-        if (!CryptGenRandom(hProv,
-                            32,
-                            (BYTE *) buffer))
+#ifdef WIN64
+        if (!CryptGenRandom(hProv, 32, (BYTE *) buffer))
         {
             COUTERR("Windows is unable to generate random digits");
             CryptReleaseContext(hProv, 0);
             return  -1;
         }
+#else
+        if (!platform_rand_bytes(buffer, 32))
+        {
+            COUTERR("Unable to generate random digits");
+            return  -1;
+        }
+#endif
         sha256_update(  &sha_ctx,
                         buffer,
                         32);
@@ -216,7 +258,9 @@ int encrypt_stream(FILE *infp, FILE *outfp, wchar_t* passwd, int passlen)
     memcpy(IV, digest, 16);
 
     // We're finished collecting random data
+#ifdef WIN64
     CryptReleaseContext(hProv, 0);
+#endif
     COUTCMD("[encrypt_stream] CryptReleaseContext\n");
     // Write the initialization vector to the file
     if (fwrite(IV, 1, 16, outfp) != 16)

@@ -10,6 +10,8 @@
 #ifndef __NO_WARNS_H__
 #define __NO_WARNS_H__
 
+#ifdef WIN64
+
 #ifndef _MSC_VER
 #   error This file is specific to the MSVC (Microsoft Visual C++) compiler.
 #endif
@@ -77,6 +79,6 @@
 #pragma warning( disable : 4018)
 #pragma warning( disable : 26495)
 
-
+#endif // WIN64
 
 #endif //__NO_WARNS_H__

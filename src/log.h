@@ -18,6 +18,10 @@
 #include <iostream>
 #include <ctime>
 
+#ifndef WIN64
+#  define __cdecl
+#endif
+
 
 
 const std::string CONSOLE_COLOR_BKGRND_WHITE_BLUE = "\u001b[37;44;1m > ";

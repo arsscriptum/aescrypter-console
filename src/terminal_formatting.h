@@ -12,7 +12,9 @@
 #define __TERMINAL_FORMATTING_H__
 
 
-#include <Windows.h>
+#ifdef WIN64
+#  include <Windows.h>
+#endif
 #include "nowarns.h"
 #include <functional>
 #include <iostream>
@@ -21,6 +23,7 @@
 #include <stack>
 #include <regex>
 #include <string>
+#include <cstdint>
 #include "log.h"
 
 const std::string ANSI_TEXT_COLOR_RESET = "\u001b[0m";

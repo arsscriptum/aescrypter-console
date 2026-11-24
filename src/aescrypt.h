@@ -33,7 +33,7 @@
 
 
 void dump_cmd_options(const aescrypter_options* options);
-int parse_arguments(int argc, char* argv[], aescrypter_options* options);
+int parse_arguments(int argc, wchar_t* argv[], aescrypter_options* options);
 void show_usage();
 void show_banner();
 void show_version();

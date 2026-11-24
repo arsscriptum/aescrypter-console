@@ -18,9 +18,10 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h> // malloc
-#include <errno.h> // errno
+#include <stdlib.h>
+#include <errno.h>
 #include <wchar.h>
+#include "platform_compat.h"
 #include "log.h"
 #include "opts.h"
 #include "password.h"
@@ -100,7 +101,8 @@ int read_password(wchar_t* buffer, operatingmode_t mode)
 
         // Read from input and fill buffer till MAX_PASSWD_LEN chars are read
         chars_read = 0;
-        while (((c = _getwch()) != L'\r') && (c != 0x0003))
+        // Accept \r (Windows Enter) or \n (Linux Enter) as line terminators
+        while (((c = _getwch()) != L'\r') && (c != L'\n') && (c != 0x0003))
         {
             // fill buffer till MAX_PASSWD_LEN
             if (chars_read <= MAX_PASSWD_LEN)

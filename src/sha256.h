@@ -21,8 +21,9 @@
 #define uint8  unsigned char
 #endif
 
+// unsigned long is 8 bytes on 64-bit Linux (LP64); use unsigned int (always 32-bit)
 #ifndef uint32
-#define uint32 unsigned long int
+#define uint32 unsigned int
 #endif
 
 typedef struct
